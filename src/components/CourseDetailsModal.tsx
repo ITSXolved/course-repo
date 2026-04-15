@@ -143,6 +143,7 @@ export default function CourseDetailsModal({ course, onClose }: { course: Course
           </div>
         </div>
       </div>
+    </div>
     </>
   );
 }
