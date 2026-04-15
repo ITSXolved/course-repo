@@ -1,12 +1,74 @@
 import { Course } from '@/lib/types';
 import { X, CheckCircle, BookOpen, UserCheck, PlayCircle, Award, Target, LayoutGrid, Download } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 export default function CourseDetailsModal({ course, onClose }: { course: Course, onClose: () => void }) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   if (!course) return null;
 
   const handleExportPdf = () => {
     window.print();
   };
+
+  const printTemplate = (
+    <div className="hidden print:block print-container w-full bg-white text-black font-sans" style={{ maxWidth: '210mm', margin: '0 auto' }}>
+      <div className="flex justify-between items-start mb-8">
+        <img src="/logo.png?v=ayadi" style={{ height: '22mm', objectFit: 'contain' }} alt="Ayadi Logo" />
+        <div className="text-right text-[11px] text-black leading-relaxed">
+          Orbit Complex, Jafarkhan Colony, Calicut 06,<br/>mail@ayadicloudversity.com
+        </div>
+      </div>
+
+      <table className="w-full border-collapse mb-10 text-[11px] text-black">
+        <thead>
+          <tr>
+            <th colSpan={2} className="border border-gray-600 bg-gray-200 text-center py-2 text-[14px] font-bold">{course.title}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {[
+            ['Duration:', course.duration || '-'],
+            ['Who Can Join:', course.targetAudience || '-'],
+            ['Course Fee:', course.fee || '-'],
+            ['Class Format:', course.classFormat || '-'],
+            ['Mentorship:', course.mentorship || '-'],
+            ['Certificate:', course.certificate || '-'],
+            ['Recordings:', course.recordings || '-'],
+            ['Schedule:', course.schedule || '-'],
+            ['Learning Content:', course.contentSummary || '-'],
+            ['Students Per Batch:', course.studentsPerBatch || '-'],
+            ['Teaching Method:', course.teachingMethod || '-'],
+            ['Manager:', course.managerName || 'Subitha']
+          ].map(([label, val]) => (
+            <tr key={label} className="avoid-break">
+              <td className="border border-gray-600 px-3 py-1.5 font-bold w-[35%]">{label}</td>
+              <td className="border border-gray-600 px-3 py-1.5">{val}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      {[
+        { title: 'MODULES', content: course.modules },
+        { title: 'LEARNING OUTCOMES', content: course.learningOutcomes },
+        { title: 'COURSE OUTCOMES', content: course.courseOutcomes },
+        { title: 'SPECIAL HIGHLIGHTS', content: course.highlights }
+      ].filter(section => !!section.content).map(section => (
+        <div key={section.title} className="mb-8 avoid-break">
+          <h3 className="text-[12px] font-bold mb-1 uppercase text-black">{section.title}</h3>
+          <div className="text-[11px] whitespace-pre-wrap leading-loose text-gray-900 font-medium">
+            {section.content}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
 
   return (
     <>
@@ -22,20 +84,15 @@ export default function CourseDetailsModal({ course, onClose }: { course: Course
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
           }
-          /* Hide all elements natively but preserve flow */
-          body * {
-            visibility: hidden;
+          /* Safely hide the entire layout except the print-container */
+          body > *:not(.print-container) {
+            display: none !important;
           }
-          /* Explicitly show only the print container and its contents */
-          .print-container, .print-container * {
-            visibility: visible;
-          }
+          /* Ensure explicit visibility and standard document flow for native page breaking */
           .print-container {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
             display: block !important;
+            position: relative !important;
+            visibility: visible !important;
           }
           .avoid-break {
             page-break-inside: avoid;
@@ -44,58 +101,8 @@ export default function CourseDetailsModal({ course, onClose }: { course: Course
         }
       `}</style>
       
-      {/* PERFECT MALAYALAM CAPATIBLE FORMAL PRINT TEMPLATE (ONLY SHOWN DURING PRINT) */}
-      <div className="hidden print:block print-container w-full bg-white text-black font-sans" style={{ maxWidth: '210mm', margin: '0 auto' }}>
-        <div className="flex justify-between items-start mb-8">
-          <img src="/logo.png?v=ayadi" style={{ height: '22mm', objectFit: 'contain' }} alt="Ayadi Logo" />
-          <div className="text-right text-[11px] text-black leading-relaxed">
-            Orbit Complex, Jafarkhan Colony, Calicut 06,<br/>mail@ayadicloudversity.com
-          </div>
-        </div>
-
-        <table className="w-full border-collapse mb-10 text-[11px] text-black">
-          <thead>
-            <tr>
-              <th colSpan={2} className="border border-gray-600 bg-gray-200 text-center py-2 text-[14px] font-bold">{course.title}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {[
-              ['Duration:', course.duration || '-'],
-              ['Who Can Join:', course.targetAudience || '-'],
-              ['Course Fee:', course.fee || '-'],
-              ['Class Format:', course.classFormat || '-'],
-              ['Mentorship:', course.mentorship || '-'],
-              ['Certificate:', course.certificate || '-'],
-              ['Recordings:', course.recordings || '-'],
-              ['Schedule:', course.schedule || '-'],
-              ['Learning Content:', course.contentSummary || '-'],
-              ['Students Per Batch:', course.studentsPerBatch || '-'],
-              ['Teaching Method:', course.teachingMethod || '-'],
-              ['Manager:', course.managerName || 'Subitha']
-            ].map(([label, val]) => (
-              <tr key={label} className="avoid-break">
-                <td className="border border-gray-600 px-3 py-1.5 font-bold w-[35%]">{label}</td>
-                <td className="border border-gray-600 px-3 py-1.5">{val}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-
-        {[
-          { title: 'MODULES', content: course.modules },
-          { title: 'LEARNING OUTCOMES', content: course.learningOutcomes },
-          { title: 'COURSE OUTCOMES', content: course.courseOutcomes },
-          { title: 'SPECIAL HIGHLIGHTS', content: course.highlights }
-        ].filter(section => !!section.content).map(section => (
-          <div key={section.title} className="mb-8 avoid-break">
-            <h3 className="text-[12px] font-bold mb-1 uppercase text-black">{section.title}</h3>
-            <div className="text-[11px] whitespace-pre-wrap leading-loose text-gray-900 font-medium">
-              {section.content}
-            </div>
-          </div>
-        ))}
-      </div>
+      {/* Attach Formal Print Template directly to body using React Portal so it bypasses all hidden ancestors! */}
+      {mounted && createPortal(printTemplate, document.body)}
 
       {/* SCREEN UI */}
       <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-950/80 backdrop-blur-sm print:hidden">
