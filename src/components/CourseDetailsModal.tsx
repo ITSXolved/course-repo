@@ -22,9 +22,20 @@ export default function CourseDetailsModal({ course, onClose }: { course: Course
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
           }
-          /* Hide main UI from printing entirely */
-          body > :not(.print-container) {
-            display: none !important;
+          /* Hide all elements natively but preserve flow */
+          body * {
+            visibility: hidden;
+          }
+          /* Explicitly show only the print container and its contents */
+          .print-container, .print-container * {
+            visibility: visible;
+          }
+          .print-container {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            display: block !important;
           }
           .avoid-break {
             page-break-inside: avoid;
@@ -36,7 +47,7 @@ export default function CourseDetailsModal({ course, onClose }: { course: Course
       {/* PERFECT MALAYALAM CAPATIBLE FORMAL PRINT TEMPLATE (ONLY SHOWN DURING PRINT) */}
       <div className="hidden print:block print-container w-full bg-white text-black font-sans" style={{ maxWidth: '210mm', margin: '0 auto' }}>
         <div className="flex justify-between items-start mb-8">
-          <img src="/logo.png" style={{ height: '22mm', objectFit: 'contain' }} alt="Ayadi Logo" />
+          <img src="/logo.png?v=ayadi" style={{ height: '22mm', objectFit: 'contain' }} alt="Ayadi Logo" />
           <div className="text-right text-[11px] text-black leading-relaxed">
             Orbit Complex, Jafarkhan Colony, Calicut 06,<br/>mail@ayadicloudversity.com
           </div>
