@@ -19,7 +19,25 @@ export default function CourseDetailsModal({ course, onClose }: { course: Course
   const printTemplate = (
     <div className="hidden print:block print-container w-full bg-white text-black font-sans" style={{ maxWidth: '210mm', margin: '0 auto' }}>
       <div className="flex justify-between items-start mb-8">
-        <img src="/logo.png?v=ayadi" style={{ height: '22mm', objectFit: 'contain' }} alt="Ayadi Logo" />
+        
+        {/* NATIVE INLINE SVG AYADI LOGO */}
+        <svg viewBox="0 0 350 120" style={{ height: '22mm' }} aria-label="Ayadi Cloudversity Logo">
+          {/* 3 Green Angled Bars Icon */}
+          <g fill="#7CC242">
+            <path d="M125 45 L150 10 L160 15 L135 50 Z" />
+            <path d="M140 55 L170 15 L180 20 L150 60 Z" />
+            <path d="M155 65 L190 20 L200 25 L165 70 Z" />
+          </g>
+          {/* AYADI Main Text */}
+          <text x="0" y="85" fontFamily="Arial, Helvetica, sans-serif" fontSize="85" fontWeight="bold" fill="#1B2E4B" letterSpacing="-2">
+            AYADI
+          </text>
+          {/* CLOUDVERSITY Subtext */}
+          <text x="5" y="112" fontFamily="Arial, Helvetica, sans-serif" fontSize="18" fontWeight="normal" fill="#1B2E4B" letterSpacing="5">
+            CLOUDVERSITY
+          </text>
+        </svg>
+
         <div className="text-right text-[11px] text-black leading-relaxed">
           Orbit Complex, Jafarkhan Colony, Calicut 06,<br/>mail@ayadicloudversity.com
         </div>
