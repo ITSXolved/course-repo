@@ -1,125 +1,93 @@
 import { Course } from '@/lib/types';
 import { X, CheckCircle, BookOpen, UserCheck, PlayCircle, Award, Target, LayoutGrid, Download } from 'lucide-react';
-import { useState } from 'react';
-import * as htmlToImage from 'html-to-image';
-import jsPDF from 'jspdf';
 
 export default function CourseDetailsModal({ course, onClose }: { course: Course, onClose: () => void }) {
-  const [isExporting, setIsExporting] = useState(false);
-
   if (!course) return null;
 
-  const handleExportPdf = async () => {
-    setIsExporting(true);
-    try {
-      const templateEl = document.getElementById(`print-template-${course.id}`);
-      if (!templateEl) return;
-      
-      // Wait for font loading if any
-      await new Promise(r => setTimeout(r, 150));
-
-      const canvas = await htmlToImage.toCanvas(templateEl, {
-        backgroundColor: '#ffffff',
-        pixelRatio: 2,
-        skipFonts: true, // Speeds up if external fonts drag
-        style: { transform: 'none' } // guarantee no weird offset
-      });
-
-      const imgData = canvas.toDataURL('image/jpeg', 0.98);
-      const pdf = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
-
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = pdf.internal.pageSize.getHeight();
-      
-      const imgWidth = canvas.width;
-      const imgHeight = canvas.height;
-      const ratio = pdfWidth / imgWidth;
-      const totalImgHeightInMm = imgHeight * ratio;
-
-      let heightLeft = totalImgHeightInMm;
-      let position = 0;
-
-      pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, totalImgHeightInMm);
-      heightLeft -= pdfHeight;
-
-      while (heightLeft > 0) {
-        position = heightLeft - totalImgHeightInMm;
-        pdf.addPage();
-        pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, totalImgHeightInMm);
-        heightLeft -= pdfHeight;
-      }
-
-      pdf.save(`${course.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_details.pdf`);
-
-    } catch (err) {
-      console.error('Failed to export PDF:', err);
-    } finally {
-      setIsExporting(false);
-    }
+  const handleExportPdf = () => {
+    window.print();
   };
 
   return (
     <>
-      {/* Hiding Wrapper: Zero size limits visibility to user, but doesn't infect child's intrinsic rendering styles */}
-      <div style={{ position: 'fixed', top: 0, left: 0, width: 0, height: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: -50 }}>
-        {/* PERFECT MALAYALAM CAPATIBLE FORMAL PRINT TEMPLATE */}
-        <div 
-          id={`print-template-${course.id}`} 
-          style={{ width: '210mm', padding: '20mm', backgroundColor: '#ffffff', color: '#000000', fontFamily: 'sans-serif', position: 'relative' }}
-        >
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15mm', alignItems: 'flex-start' }}>
-            <img src="/logo.png" style={{ height: '22mm', objectFit: 'contain' }} alt="Ayadi Logo" />
-            <div style={{ textAlign: 'right', fontSize: '11px', color: '#000', lineHeight: '1.4' }}>
-              Orbit Complex, Jafarkhan Colony, Calicut 06,<br/>mail@ayadicloudversity.com
+      <style>{`
+        @media print {
+          title { display: none; }
+          @page {
+            margin: 15mm;
+            size: A4 portrait;
+          }
+          body {
+            background-color: white !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+          }
+          /* Hide main UI from printing entirely */
+          body > :not(.print-container) {
+            display: none !important;
+          }
+          .avoid-break {
+            page-break-inside: avoid;
+            break-inside: avoid;
+          }
+        }
+      `}</style>
+      
+      {/* PERFECT MALAYALAM CAPATIBLE FORMAL PRINT TEMPLATE (ONLY SHOWN DURING PRINT) */}
+      <div className="hidden print:block print-container w-full bg-white text-black font-sans" style={{ maxWidth: '210mm', margin: '0 auto' }}>
+        <div className="flex justify-between items-start mb-8">
+          <img src="/logo.png" style={{ height: '22mm', objectFit: 'contain' }} alt="Ayadi Logo" />
+          <div className="text-right text-[11px] text-black leading-relaxed">
+            Orbit Complex, Jafarkhan Colony, Calicut 06,<br/>mail@ayadicloudversity.com
+          </div>
+        </div>
+
+        <table className="w-full border-collapse mb-10 text-[11px] text-black">
+          <thead>
+            <tr>
+              <th colSpan={2} className="border border-gray-600 bg-gray-200 text-center py-2 text-[14px] font-bold">{course.title}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {[
+              ['Duration:', course.duration || '-'],
+              ['Who Can Join:', course.targetAudience || '-'],
+              ['Course Fee:', course.fee || '-'],
+              ['Class Format:', course.classFormat || '-'],
+              ['Mentorship:', course.mentorship || '-'],
+              ['Certificate:', course.certificate || '-'],
+              ['Recordings:', course.recordings || '-'],
+              ['Schedule:', course.schedule || '-'],
+              ['Learning Content:', course.contentSummary || '-'],
+              ['Students Per Batch:', course.studentsPerBatch || '-'],
+              ['Teaching Method:', course.teachingMethod || '-'],
+              ['Manager:', course.managerName || 'Subitha']
+            ].map(([label, val]) => (
+              <tr key={label} className="avoid-break">
+                <td className="border border-gray-600 px-3 py-1.5 font-bold w-[35%]">{label}</td>
+                <td className="border border-gray-600 px-3 py-1.5">{val}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        {[
+          { title: 'MODULES', content: course.modules },
+          { title: 'LEARNING OUTCOMES', content: course.learningOutcomes },
+          { title: 'COURSE OUTCOMES', content: course.courseOutcomes },
+          { title: 'SPECIAL HIGHLIGHTS', content: course.highlights }
+        ].filter(section => !!section.content).map(section => (
+          <div key={section.title} className="mb-8 avoid-break">
+            <h3 className="text-[12px] font-bold mb-1 uppercase text-black">{section.title}</h3>
+            <div className="text-[11px] whitespace-pre-wrap leading-loose text-gray-900 font-medium">
+              {section.content}
             </div>
           </div>
-
-          <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '10mm', fontSize: '11px', color: '#000' }}>
-            <thead>
-              <tr>
-                <th colSpan={2} style={{ border: '1px solid #777', backgroundColor: '#e5e7eb', textAlign: 'center', padding: '8px', fontSize: '14px', fontWeight: 'bold' }}>{course.title}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {[
-                ['Duration:', course.duration || '-'],
-                ['Who Can Join:', course.targetAudience || '-'],
-                ['Course Fee:', course.fee || '-'],
-                ['Class Format:', course.classFormat || '-'],
-                ['Mentorship:', course.mentorship || '-'],
-                ['Certificate:', course.certificate || '-'],
-                ['Recordings:', course.recordings || '-'],
-                ['Schedule:', course.schedule || '-'],
-                ['Learning Content:', course.contentSummary || '-'],
-                ['Students Per Batch:', course.studentsPerBatch || '-'],
-                ['Teaching Method:', course.teachingMethod || '-'],
-                ['Manager:', course.managerName || 'Subitha']
-              ].map(([label, val]) => (
-                <tr key={label}>
-                  <td style={{ border: '1px solid #777', padding: '5px 8px', fontWeight: 'bold', width: '35%' }}>{label}</td>
-                  <td style={{ border: '1px solid #777', padding: '5px 8px' }}>{val}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-
-          {[
-            { title: 'MODULES', content: course.modules },
-            { title: 'LEARNING OUTCOMES', content: course.learningOutcomes },
-            { title: 'COURSE OUTCOMES', content: course.courseOutcomes },
-            { title: 'SPECIAL HIGHLIGHTS', content: course.highlights }
-          ].filter(section => !!section.content).map(section => (
-            <div key={section.title} style={{ marginBottom: '8mm' }}>
-              <h3 style={{ fontSize: '12px', fontWeight: 'bold', marginBottom: '4px', textTransform: 'uppercase', color: '#000' }}>{section.title}</h3>
-              <div style={{ fontSize: '11px', whiteSpace: 'pre-wrap', lineHeight: '1.6', color: '#111' }}>
-                {section.content}
-              </div>
-            </div>
-          ))}
-        </div>
+        ))}
       </div>
 
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-950/80 backdrop-blur-sm">
+      {/* SCREEN UI */}
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-950/80 backdrop-blur-sm print:hidden">
         <div id="pdf-content-inner" className="bg-slate-900 border border-slate-700/50 rounded-2xl sm:rounded-3xl w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto shadow-2xl relative custom-scrollbar flex flex-col">
         
         {/* Header */}
@@ -131,14 +99,13 @@ export default function CourseDetailsModal({ course, onClose }: { course: Course
             <h2 className="heading text-xl sm:text-2xl font-bold text-white leading-tight">{course.title}</h2>
           </div>
           
-          <div className="absolute top-4 right-4 sm:top-6 sm:right-6 flex items-center gap-2 no-print">
+          <div className="absolute top-4 right-4 sm:top-6 sm:right-6 flex items-center gap-2">
             <button 
               onClick={handleExportPdf}
-              disabled={isExporting}
-              title="Export as PDF"
-              className="p-2 rounded-full bg-cyan-900/30 text-cyan-400 hover:text-cyan-300 border border-cyan-500/30 hover:bg-cyan-800/40 transition disabled:opacity-50"
+              title="Print / Export as PDF"
+              className="p-2 rounded-full bg-cyan-900/30 text-cyan-400 hover:text-cyan-300 border border-cyan-500/30 hover:bg-cyan-800/40 transition"
             >
-              <Download size={20} className={isExporting ? "animate-pulse" : ""} />
+              <Download size={20} />
             </button>
             <button 
               onClick={onClose}
