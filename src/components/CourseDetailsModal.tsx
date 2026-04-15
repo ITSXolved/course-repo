@@ -1,42 +1,77 @@
 import { Course } from '@/lib/types';
 import { X, CheckCircle, BookOpen, UserCheck, PlayCircle, Award, Target, LayoutGrid, Download } from 'lucide-react';
 import { useState } from 'react';
+import * as htmlToImage from 'html-to-image';
+import jsPDF from 'jspdf';
 
 export default function CourseDetailsModal({ course, onClose }: { course: Course, onClose: () => void }) {
+  const [isExporting, setIsExporting] = useState(false);
+
   if (!course) return null;
 
-  const handleExportPdf = () => {
-    window.print();
+  const handleExportPdf = async () => {
+    setIsExporting(true);
+    try {
+      const element = document.getElementById(`pdf-content-inner`);
+      if (!element) return;
+
+      const oldMaxHeight = element.style.maxHeight;
+      const oldOverflow = element.style.overflow;
+      element.style.maxHeight = 'none';
+      element.style.overflow = 'visible';
+
+      const noPrintEls = element.querySelectorAll('.no-print');
+      noPrintEls.forEach((el: any) => { el.style.display = 'none'; });
+
+      // Small delay to allow DOM to recalculate
+      await new Promise(r => setTimeout(r, 100));
+
+      const canvas = await htmlToImage.toCanvas(element, {
+        backgroundColor: '#020817', // Match dark theme slate-950
+        pixelRatio: 2
+      });
+
+      element.style.maxHeight = oldMaxHeight;
+      element.style.overflow = oldOverflow;
+      noPrintEls.forEach((el: any) => { el.style.display = ''; });
+
+      const imgData = canvas.toDataURL('image/jpeg', 0.98);
+      const pdf = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
+
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      
+      const imgWidth = canvas.width;
+      const imgHeight = canvas.height;
+      const ratio = pdfWidth / imgWidth;
+      const totalImgHeightInMm = imgHeight * ratio;
+
+      let heightLeft = totalImgHeightInMm;
+      let position = 0;
+
+      pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, totalImgHeightInMm);
+      heightLeft -= pdfHeight;
+
+      while (heightLeft > 0) {
+        position = heightLeft - totalImgHeightInMm;
+        pdf.addPage();
+        pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, totalImgHeightInMm);
+        heightLeft -= pdfHeight;
+      }
+
+      pdf.save(`${course.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_details.pdf`);
+
+    } catch (err) {
+      console.error('Failed to export PDF:', err);
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   return (
     <>
-      <style>{`
-        @media print {
-          body * {
-            visibility: hidden;
-          }
-          #pdf-wrapper, #pdf-wrapper * {
-            visibility: visible;
-          }
-          #pdf-wrapper {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-            background: #000;
-          }
-          .no-print {
-            display: none !important;
-          }
-          .custom-scrollbar { /* allow full height for pagination in print */
-            max-height: none !important;
-            overflow: visible !important;
-          }
-        }
-      `}</style>
-      <div id="pdf-wrapper" className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-950/80 backdrop-blur-sm">
-        <div className="bg-slate-900 border border-slate-700/50 rounded-2xl sm:rounded-3xl w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto shadow-2xl relative custom-scrollbar flex flex-col">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-950/80 backdrop-blur-sm">
+        <div id="pdf-content-inner" className="bg-slate-900 border border-slate-700/50 rounded-2xl sm:rounded-3xl w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto shadow-2xl relative custom-scrollbar flex flex-col">
         
         {/* Header */}
         <div className="sticky top-0 z-20 bg-slate-900/95 backdrop-blur-md border-b border-slate-700/50 px-4 sm:px-6 py-4 flex justify-between items-start sm:items-center gap-4">
@@ -47,13 +82,14 @@ export default function CourseDetailsModal({ course, onClose }: { course: Course
             <h2 className="heading text-xl sm:text-2xl font-bold text-white leading-tight">{course.title}</h2>
           </div>
           
-          <div className="absolute top-4 right-4 sm:top-6 sm:right-6 flex items-center gap-2">
+          <div className="absolute top-4 right-4 sm:top-6 sm:right-6 flex items-center gap-2 no-print">
             <button 
               onClick={handleExportPdf}
+              disabled={isExporting}
               title="Export as PDF"
-              className="p-2 rounded-full bg-cyan-900/30 text-cyan-400 hover:text-cyan-300 border border-cyan-500/30 hover:bg-cyan-800/40 transition"
+              className="p-2 rounded-full bg-cyan-900/30 text-cyan-400 hover:text-cyan-300 border border-cyan-500/30 hover:bg-cyan-800/40 transition disabled:opacity-50"
             >
-              <Download size={20} />
+              <Download size={20} className={isExporting ? "animate-pulse" : ""} />
             </button>
             <button 
               onClick={onClose}
