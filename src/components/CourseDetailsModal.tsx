@@ -3,43 +3,40 @@ import { X, CheckCircle, BookOpen, UserCheck, PlayCircle, Award, Target, LayoutG
 import { useState } from 'react';
 
 export default function CourseDetailsModal({ course, onClose }: { course: Course, onClose: () => void }) {
-  const [isExporting, setIsExporting] = useState(false);
-
   if (!course) return null;
 
-  const handleExportPdf = async () => {
-    setIsExporting(true);
-    try {
-      const html2pdf = (await import('html2pdf.js')).default;
-      const element = document.getElementById(`pdf-content-${course.id}`);
-      
-      // Show pdf header
-      const headerEl = element?.querySelector('.pdf-header-only');
-      if (headerEl) headerEl.classList.remove('hidden');
-
-      const opt = {
-        margin:       0.3,
-        filename:     `${course.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_details.pdf`,
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#020817' },
-        jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
-      };
-
-      await html2pdf().set(opt).from(element).save();
-
-      // Hide string header
-      if (headerEl) headerEl.classList.add('hidden');
-
-    } catch (err) {
-      console.error('Failed to export PDF:', err);
-    } finally {
-      setIsExporting(false);
-    }
+  const handleExportPdf = () => {
+    window.print();
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-950/80 backdrop-blur-sm">
-      <div className="bg-slate-900 border border-slate-700/50 rounded-2xl sm:rounded-3xl w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto shadow-2xl relative custom-scrollbar flex flex-col">
+    <>
+      <style>{`
+        @media print {
+          body * {
+            visibility: hidden;
+          }
+          #pdf-wrapper, #pdf-wrapper * {
+            visibility: visible;
+          }
+          #pdf-wrapper {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            background: #000;
+          }
+          .no-print {
+            display: none !important;
+          }
+          .custom-scrollbar { /* allow full height for pagination in print */
+            max-height: none !important;
+            overflow: visible !important;
+          }
+        }
+      `}</style>
+      <div id="pdf-wrapper" className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-950/80 backdrop-blur-sm">
+        <div className="bg-slate-900 border border-slate-700/50 rounded-2xl sm:rounded-3xl w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto shadow-2xl relative custom-scrollbar flex flex-col">
         
         {/* Header */}
         <div className="sticky top-0 z-20 bg-slate-900/95 backdrop-blur-md border-b border-slate-700/50 px-4 sm:px-6 py-4 flex justify-between items-start sm:items-center gap-4">
@@ -146,7 +143,7 @@ export default function CourseDetailsModal({ course, onClose }: { course: Course
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
 
