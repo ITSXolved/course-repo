@@ -60,61 +60,63 @@ export default function CourseDetailsModal({ course, onClose }: { course: Course
 
   return (
     <>
-      {/* PERFECT MALAYALAM CAPATIBLE FORMAL PRINT TEMPLATE (HIDDEN) */}
-      <div 
-        id={`print-template-${course.id}`} 
-        className="fixed top-0 left-[-9999px] -z-50 bg-white text-black"
-        style={{ width: '210mm', padding: '15mm', fontFamily: 'sans-serif' }}
-      >
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15mm' }}>
-          <img src="/logo.png" style={{ height: '15mm' }} alt="Ayadi" />
-          <div style={{ textAlign: 'right', fontSize: '10px', color: '#000' }}>
-            Orbit Complex, Jafarkhan Colony, Calicut 06,<br/>mail@ayadicloudversity.com
-          </div>
-        </div>
-
-        <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '10mm', fontSize: '11px', color: '#000' }}>
-          <thead>
-            <tr>
-              <th colSpan={2} style={{ border: '1px solid #777', backgroundColor: '#e5e7eb', textAlign: 'center', padding: '6px', fontSize: '13px', fontWeight: 'bold' }}>{course.title}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {[
-              ['Duration:', course.duration || '-'],
-              ['Who Can Join:', course.targetAudience || '-'],
-              ['Course Fee:', course.fee || '-'],
-              ['Class Format:', course.classFormat || '-'],
-              ['Mentorship:', course.mentorship || '-'],
-              ['Certificate:', course.certificate || '-'],
-              ['Recordings:', course.recordings || '-'],
-              ['Schedule:', course.schedule || '-'],
-              ['Learning Content:', course.contentSummary || '-'],
-              ['Students Per Batch:', course.studentsPerBatch || '-'],
-              ['Teaching Method:', course.teachingMethod || '-'],
-              ['Manager:', course.managerName || 'Subitha']
-            ].map(([label, val]) => (
-              <tr key={label}>
-                <td style={{ border: '1px solid #777', padding: '4px 8px', fontWeight: 'bold', width: '35%' }}>{label}</td>
-                <td style={{ border: '1px solid #777', padding: '4px 8px' }}>{val}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-
-        {[
-          { title: 'MODULES', content: course.modules },
-          { title: 'LEARNING OUTCOMES', content: course.learningOutcomes },
-          { title: 'COURSE OUTCOMES', content: course.courseOutcomes },
-          { title: 'SPECIAL HIGHLIGHTS', content: course.highlights }
-        ].filter(section => !!section.content).map(section => (
-          <div key={section.title} style={{ marginBottom: '8mm' }}>
-            <h3 style={{ fontSize: '12px', fontWeight: 'bold', marginBottom: '4px', textTransform: 'uppercase', color: '#000' }}>{section.title}</h3>
-            <div style={{ fontSize: '11px', whiteSpace: 'pre-wrap', lineHeight: '1.5', color: '#111' }}>
-              {section.content}
+      {/* Hiding Wrapper: Zero size limits visibility to user, but doesn't infect child's intrinsic rendering styles */}
+      <div style={{ position: 'fixed', top: 0, left: 0, width: 0, height: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: -50 }}>
+        {/* PERFECT MALAYALAM CAPATIBLE FORMAL PRINT TEMPLATE */}
+        <div 
+          id={`print-template-${course.id}`} 
+          style={{ width: '210mm', padding: '20mm', backgroundColor: '#ffffff', color: '#000000', fontFamily: 'sans-serif', position: 'relative' }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15mm', alignItems: 'flex-start' }}>
+            <img src="/logo.png" style={{ height: '22mm', objectFit: 'contain' }} alt="Ayadi Logo" />
+            <div style={{ textAlign: 'right', fontSize: '11px', color: '#000', lineHeight: '1.4' }}>
+              Orbit Complex, Jafarkhan Colony, Calicut 06,<br/>mail@ayadicloudversity.com
             </div>
           </div>
-        ))}
+
+          <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '10mm', fontSize: '11px', color: '#000' }}>
+            <thead>
+              <tr>
+                <th colSpan={2} style={{ border: '1px solid #777', backgroundColor: '#e5e7eb', textAlign: 'center', padding: '8px', fontSize: '14px', fontWeight: 'bold' }}>{course.title}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {[
+                ['Duration:', course.duration || '-'],
+                ['Who Can Join:', course.targetAudience || '-'],
+                ['Course Fee:', course.fee || '-'],
+                ['Class Format:', course.classFormat || '-'],
+                ['Mentorship:', course.mentorship || '-'],
+                ['Certificate:', course.certificate || '-'],
+                ['Recordings:', course.recordings || '-'],
+                ['Schedule:', course.schedule || '-'],
+                ['Learning Content:', course.contentSummary || '-'],
+                ['Students Per Batch:', course.studentsPerBatch || '-'],
+                ['Teaching Method:', course.teachingMethod || '-'],
+                ['Manager:', course.managerName || 'Subitha']
+              ].map(([label, val]) => (
+                <tr key={label}>
+                  <td style={{ border: '1px solid #777', padding: '5px 8px', fontWeight: 'bold', width: '35%' }}>{label}</td>
+                  <td style={{ border: '1px solid #777', padding: '5px 8px' }}>{val}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          {[
+            { title: 'MODULES', content: course.modules },
+            { title: 'LEARNING OUTCOMES', content: course.learningOutcomes },
+            { title: 'COURSE OUTCOMES', content: course.courseOutcomes },
+            { title: 'SPECIAL HIGHLIGHTS', content: course.highlights }
+          ].filter(section => !!section.content).map(section => (
+            <div key={section.title} style={{ marginBottom: '8mm' }}>
+              <h3 style={{ fontSize: '12px', fontWeight: 'bold', marginBottom: '4px', textTransform: 'uppercase', color: '#000' }}>{section.title}</h3>
+              <div style={{ fontSize: '11px', whiteSpace: 'pre-wrap', lineHeight: '1.6', color: '#111' }}>
+                {section.content}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
       <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-950/80 backdrop-blur-sm">
