@@ -50,11 +50,10 @@ export default function CourseDetailsModal({ course, onClose }: { course: Course
           <div className="absolute top-4 right-4 sm:top-6 sm:right-6 flex items-center gap-2">
             <button 
               onClick={handleExportPdf}
-              disabled={isExporting}
               title="Export as PDF"
-              className="p-2 rounded-full bg-cyan-900/30 text-cyan-400 hover:text-cyan-300 border border-cyan-500/30 hover:bg-cyan-800/40 transition disabled:opacity-50"
+              className="p-2 rounded-full bg-cyan-900/30 text-cyan-400 hover:text-cyan-300 border border-cyan-500/30 hover:bg-cyan-800/40 transition"
             >
-              <Download size={20} className={isExporting ? "animate-pulse" : ""} />
+              <Download size={20} />
             </button>
             <button 
               onClick={onClose}
