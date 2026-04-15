@@ -2,15 +2,21 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { Course } from './types';
 
-// Helper to reliably load image as Base64 for jsPDF
-const getBase64ImageFromUrl = async (url: string) => {
+// Helper to reliably load files into Base64 for jsPDF
+const getBase64FromUrl = async (url: string, prefix = false) => {
   try {
     const res = await fetch(url);
     if (!res.ok) return null;
     const blob = await res.blob();
     return new Promise<string>((resolve) => {
       const reader = new FileReader();
-      reader.onload = () => resolve(reader.result as string);
+      reader.onload = () => {
+        let result = reader.result as string;
+        if (!prefix) {
+          result = result.split(',')[1]; // remove data url prefix for VFS
+        }
+        resolve(result);
+      };
       reader.readAsDataURL(blob);
     });
   } catch (err) {
@@ -25,39 +31,46 @@ export async function generateCoursePdf(course: Course) {
     format: 'a4'
   });
 
+  const malayalamFontBase64 = await getBase64FromUrl('/NotoSansMalayalam-Regular.ttf', false);
+  if (malayalamFontBase64) {
+    doc.addFileToVFS('Malayalam.ttf', malayalamFontBase64);
+    doc.addFont('Malayalam.ttf', 'Malayalam', 'normal');
+    doc.addFont('Malayalam.ttf', 'Malayalam', 'bold'); // Fallback bold mapping
+  }
+
+  const defaultFont = malayalamFontBase64 ? 'Malayalam' : 'helvetica';
+
   const pageWidth = doc.internal.pageSize.getWidth();
   let startY = 20;
 
   // 1. HEADER: Try to add Ayadi Logo
-  const logoData = await getBase64ImageFromUrl('/logo.png');
+  const logoData = await getBase64FromUrl('/logo.png', true);
   
   if (logoData) {
-    // Determine reasonable dimensions maintaining aspect ratio, usually height ~15mm
     doc.addImage(logoData, 'PNG', 15, 10, 40, 15);
   } else {
-    // Fallback styled text
     doc.setFontSize(20);
-    doc.setTextColor(34, 51, 85); // Navy
-    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(34, 51, 85);
+    doc.setFont(defaultFont, 'bold');
     doc.text('AYADI', 15, 18);
     
     doc.setFontSize(8);
     doc.setTextColor(100, 100, 100);
-    doc.setFont('helvetica', 'normal');
+    doc.setFont(defaultFont, 'normal');
     doc.text('CLOUDVERSITY', 15, 23);
   }
   
   // Right side address
   doc.setFontSize(8);
   doc.setTextColor(0, 0, 0);
-  doc.setFont('helvetica', 'normal');
+  doc.setFont(defaultFont, 'normal');
   const addressLines = [
     'Orbit Complex, Jafarkhan Colony, Calicut 06,',
     'mail@ayadicloudversity.com'
   ];
   doc.text(addressLines, pageWidth - 15, 15, { align: 'right' });
 
-  startY += 15; // move below header
+  startY += 15; 
 
   // 2. MAIN TABLE
   const tableData = [
@@ -72,7 +85,7 @@ export async function generateCoursePdf(course: Course) {
     ['Learning Content:', course.contentSummary || '-'],
     ['Students Per Batch:', course.studentsPerBatch || '-'],
     ['Teaching Method:', course.teachingMethod || '-'],
-    ['Manager:', course.managerName || 'Subitha'] // Fallback to provided image baseline
+    ['Manager:', course.managerName || 'Subitha']
   ];
 
   autoTable(doc, {
@@ -81,14 +94,14 @@ export async function generateCoursePdf(course: Course) {
     head: [[{ 
         content: course.title, 
         colSpan: 2, 
-        styles: { halign: 'center', fillColor: [230, 230, 230], textColor: [0, 0, 0], fontStyle: 'bold', font: 'helvetica', fontSize: 10 } 
+        styles: { halign: 'center', fillColor: [230, 230, 230], textColor: [0, 0, 0], fontStyle: 'bold', font: defaultFont, fontSize: 10 } 
     }]],
     body: tableData,
     styles: {
-      font: 'helvetica',
+      font: defaultFont,
       fontSize: 9,
       textColor: [0, 0, 0],
-      lineColor: [100, 100, 100], // darker border to match formal aesthetic
+      lineColor: [100, 100, 100],
       lineWidth: 0.1,
       cellPadding: 3,
     },
@@ -106,23 +119,19 @@ export async function generateCoursePdf(course: Course) {
   const drawSection = (title: string, content: string) => {
     if (!content || content.trim() === '') return;
     
-    // Header spacing
     if (startY > pageHeight - 30) {
       doc.addPage();
       startY = 20;
     }
 
-    // Draw Section Header
     doc.setFontSize(10);
-    doc.setFont('helvetica', 'bold');
+    doc.setFont(defaultFont, 'bold');
     doc.text(title.toUpperCase(), 15, startY);
     startY += 5;
 
-    // Draw Content line by line to approximate numbered formatting
     doc.setFontSize(9);
-    doc.setFont('helvetica', 'normal');
+    doc.setFont(defaultFont, 'normal');
 
-    // Split logic: breaks at newlines, then attempts to list items natively
     const lines = content.split('\n').filter(line => line.trim().length > 0);
     
     lines.forEach((line) => {
@@ -135,11 +144,10 @@ export async function generateCoursePdf(course: Course) {
       const wrappedText = doc.splitTextToSize(cleanLine, pageWidth - 30);
       doc.text(wrappedText, 15, startY);
       
-      // Move Y down by line count (roughly 4.5mm per line of standard font)
       startY += (wrappedText.length * 4.5) + 1;
     });
 
-    startY += 8; // Spacer between sections
+    startY += 8;
   };
 
   drawSection('MODULES', course.modules);
@@ -150,7 +158,6 @@ export async function generateCoursePdf(course: Course) {
     drawSection('SPECIAL HIGHLIGHTS', course.highlights);
   }
 
-  // Export
   const fileName = `${course.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_details.pdf`;
   doc.save(fileName);
 }
