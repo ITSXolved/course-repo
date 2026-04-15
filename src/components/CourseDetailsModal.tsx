@@ -1,7 +1,8 @@
 import { Course } from '@/lib/types';
 import { X, CheckCircle, BookOpen, UserCheck, PlayCircle, Award, Target, LayoutGrid, Download } from 'lucide-react';
 import { useState } from 'react';
-import { generateCoursePdf } from '@/lib/pdfGenerator';
+import * as htmlToImage from 'html-to-image';
+import jsPDF from 'jspdf';
 
 export default function CourseDetailsModal({ course, onClose }: { course: Course, onClose: () => void }) {
   const [isExporting, setIsExporting] = useState(false);
@@ -11,8 +12,45 @@ export default function CourseDetailsModal({ course, onClose }: { course: Course
   const handleExportPdf = async () => {
     setIsExporting(true);
     try {
-      // Offload to our dedicated jsPDF generator
-      await generateCoursePdf(course);
+      const templateEl = document.getElementById(`print-template-${course.id}`);
+      if (!templateEl) return;
+      
+      // Wait for font loading if any
+      await new Promise(r => setTimeout(r, 150));
+
+      const canvas = await htmlToImage.toCanvas(templateEl, {
+        backgroundColor: '#ffffff',
+        pixelRatio: 2,
+        skipFonts: true, // Speeds up if external fonts drag
+        style: { transform: 'none' } // guarantee no weird offset
+      });
+
+      const imgData = canvas.toDataURL('image/jpeg', 0.98);
+      const pdf = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
+
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      
+      const imgWidth = canvas.width;
+      const imgHeight = canvas.height;
+      const ratio = pdfWidth / imgWidth;
+      const totalImgHeightInMm = imgHeight * ratio;
+
+      let heightLeft = totalImgHeightInMm;
+      let position = 0;
+
+      pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, totalImgHeightInMm);
+      heightLeft -= pdfHeight;
+
+      while (heightLeft > 0) {
+        position = heightLeft - totalImgHeightInMm;
+        pdf.addPage();
+        pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, totalImgHeightInMm);
+        heightLeft -= pdfHeight;
+      }
+
+      pdf.save(`${course.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_details.pdf`);
+
     } catch (err) {
       console.error('Failed to export PDF:', err);
     } finally {
@@ -22,6 +60,63 @@ export default function CourseDetailsModal({ course, onClose }: { course: Course
 
   return (
     <>
+      {/* PERFECT MALAYALAM CAPATIBLE FORMAL PRINT TEMPLATE (HIDDEN) */}
+      <div 
+        id={`print-template-${course.id}`} 
+        className="fixed top-0 left-[-9999px] -z-50 bg-white text-black"
+        style={{ width: '210mm', padding: '15mm', fontFamily: 'sans-serif' }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15mm' }}>
+          <img src="/logo.png" style={{ height: '15mm' }} alt="Ayadi" />
+          <div style={{ textAlign: 'right', fontSize: '10px', color: '#000' }}>
+            Orbit Complex, Jafarkhan Colony, Calicut 06,<br/>mail@ayadicloudversity.com
+          </div>
+        </div>
+
+        <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '10mm', fontSize: '11px', color: '#000' }}>
+          <thead>
+            <tr>
+              <th colSpan={2} style={{ border: '1px solid #777', backgroundColor: '#e5e7eb', textAlign: 'center', padding: '6px', fontSize: '13px', fontWeight: 'bold' }}>{course.title}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {[
+              ['Duration:', course.duration || '-'],
+              ['Who Can Join:', course.targetAudience || '-'],
+              ['Course Fee:', course.fee || '-'],
+              ['Class Format:', course.classFormat || '-'],
+              ['Mentorship:', course.mentorship || '-'],
+              ['Certificate:', course.certificate || '-'],
+              ['Recordings:', course.recordings || '-'],
+              ['Schedule:', course.schedule || '-'],
+              ['Learning Content:', course.contentSummary || '-'],
+              ['Students Per Batch:', course.studentsPerBatch || '-'],
+              ['Teaching Method:', course.teachingMethod || '-'],
+              ['Manager:', course.managerName || 'Subitha']
+            ].map(([label, val]) => (
+              <tr key={label}>
+                <td style={{ border: '1px solid #777', padding: '4px 8px', fontWeight: 'bold', width: '35%' }}>{label}</td>
+                <td style={{ border: '1px solid #777', padding: '4px 8px' }}>{val}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        {[
+          { title: 'MODULES', content: course.modules },
+          { title: 'LEARNING OUTCOMES', content: course.learningOutcomes },
+          { title: 'COURSE OUTCOMES', content: course.courseOutcomes },
+          { title: 'SPECIAL HIGHLIGHTS', content: course.highlights }
+        ].filter(section => !!section.content).map(section => (
+          <div key={section.title} style={{ marginBottom: '8mm' }}>
+            <h3 style={{ fontSize: '12px', fontWeight: 'bold', marginBottom: '4px', textTransform: 'uppercase', color: '#000' }}>{section.title}</h3>
+            <div style={{ fontSize: '11px', whiteSpace: 'pre-wrap', lineHeight: '1.5', color: '#111' }}>
+              {section.content}
+            </div>
+          </div>
+        ))}
+      </div>
+
       <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-950/80 backdrop-blur-sm">
         <div id="pdf-content-inner" className="bg-slate-900 border border-slate-700/50 rounded-2xl sm:rounded-3xl w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto shadow-2xl relative custom-scrollbar flex flex-col">
         
