@@ -1,8 +1,7 @@
 import { Course } from '@/lib/types';
 import { X, CheckCircle, BookOpen, UserCheck, PlayCircle, Award, Target, LayoutGrid, Download } from 'lucide-react';
 import { useState } from 'react';
-import * as htmlToImage from 'html-to-image';
-import jsPDF from 'jspdf';
+import { generateCoursePdf } from '@/lib/pdfGenerator';
 
 export default function CourseDetailsModal({ course, onClose }: { course: Course, onClose: () => void }) {
   const [isExporting, setIsExporting] = useState(false);
@@ -12,55 +11,8 @@ export default function CourseDetailsModal({ course, onClose }: { course: Course
   const handleExportPdf = async () => {
     setIsExporting(true);
     try {
-      const element = document.getElementById(`pdf-content-inner`);
-      if (!element) return;
-
-      const oldMaxHeight = element.style.maxHeight;
-      const oldOverflow = element.style.overflow;
-      element.style.maxHeight = 'none';
-      element.style.overflow = 'visible';
-
-      const noPrintEls = element.querySelectorAll('.no-print');
-      noPrintEls.forEach((el: any) => { el.style.display = 'none'; });
-
-      // Small delay to allow DOM to recalculate
-      await new Promise(r => setTimeout(r, 100));
-
-      const canvas = await htmlToImage.toCanvas(element, {
-        backgroundColor: '#020817', // Match dark theme slate-950
-        pixelRatio: 2
-      });
-
-      element.style.maxHeight = oldMaxHeight;
-      element.style.overflow = oldOverflow;
-      noPrintEls.forEach((el: any) => { el.style.display = ''; });
-
-      const imgData = canvas.toDataURL('image/jpeg', 0.98);
-      const pdf = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
-
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = pdf.internal.pageSize.getHeight();
-      
-      const imgWidth = canvas.width;
-      const imgHeight = canvas.height;
-      const ratio = pdfWidth / imgWidth;
-      const totalImgHeightInMm = imgHeight * ratio;
-
-      let heightLeft = totalImgHeightInMm;
-      let position = 0;
-
-      pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, totalImgHeightInMm);
-      heightLeft -= pdfHeight;
-
-      while (heightLeft > 0) {
-        position = heightLeft - totalImgHeightInMm;
-        pdf.addPage();
-        pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, totalImgHeightInMm);
-        heightLeft -= pdfHeight;
-      }
-
-      pdf.save(`${course.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_details.pdf`);
-
+      // Offload to our dedicated jsPDF generator
+      await generateCoursePdf(course);
     } catch (err) {
       console.error('Failed to export PDF:', err);
     } finally {
