@@ -55,10 +55,10 @@ export default function CourseViewer({ initialCourses }: { initialCourses: Cours
       
       {/* Hero Header */}
       <div className="max-w-7xl mx-auto mb-12 text-center">
-        <h1 className="heading text-4xl md:text-6xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-blue-500 mb-4 pb-2">
+        <h1 className="heading text-4xl md:text-6xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-900 to-blue-600 mb-4 pb-2">
           Course Catalog
         </h1>
-        <p className="text-slate-400 max-w-2xl mx-auto text-lg">
+        <p className="text-slate-600 max-w-2xl mx-auto text-lg font-medium">
           Discover a wide range of rigorous courses tailored for every learner. Use the filters below to find exactly what you're looking for.
         </p>
       </div>
@@ -68,11 +68,11 @@ export default function CourseViewer({ initialCourses }: { initialCourses: Cours
         {/* Search */}
         <div className="relative flex-1">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Search className="h-5 w-5 text-slate-500" />
+            <Search className="h-5 w-5 text-slate-400" />
           </div>
           <input
             type="text"
-            className="block w-full pl-10 pr-3 py-3 border border-slate-700 rounded-xl leading-5 bg-slate-900/50 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 sm:text-sm transition-all"
+            className="block w-full pl-10 pr-3 py-3 border border-slate-300 rounded-xl leading-5 bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 sm:text-sm transition-all shadow-sm"
             placeholder="Search courses, modules, or keywords..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -83,7 +83,7 @@ export default function CourseViewer({ initialCourses }: { initialCourses: Cours
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="relative min-w-[200px]">
             <select
-              className="block w-full pl-10 pr-8 py-3 border border-slate-700 rounded-xl leading-5 bg-slate-900/50 text-slate-100 focus:outline-none focus:ring-2 focus:ring-cyan-500 sm:text-sm appearance-none transition-all"
+              className="block w-full pl-10 pr-8 py-3 border border-slate-300 rounded-xl leading-5 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-500 sm:text-sm appearance-none transition-all shadow-sm"
               value={selectedEntity}
               onChange={(e) => setSelectedEntity(e.target.value)}
             >
@@ -92,13 +92,13 @@ export default function CourseViewer({ initialCourses }: { initialCourses: Cours
               ))}
             </select>
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Filter className="h-4 w-4 text-slate-500" />
+              <Filter className="h-4 w-4 text-slate-400" />
             </div>
           </div>
 
           <div className="relative min-w-[200px]">
             <select
-              className="block w-full pl-10 pr-8 py-3 border border-slate-700 rounded-xl leading-5 bg-slate-900/50 text-slate-100 focus:outline-none focus:ring-2 focus:ring-cyan-500 sm:text-sm appearance-none transition-all"
+              className="block w-full pl-10 pr-8 py-3 border border-slate-300 rounded-xl leading-5 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-500 sm:text-sm appearance-none transition-all shadow-sm"
               value={selectedCourseTitle}
               onChange={(e) => setSelectedCourseTitle(e.target.value)}
             >
@@ -107,7 +107,7 @@ export default function CourseViewer({ initialCourses }: { initialCourses: Cours
               ))}
             </select>
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <BookOpen className="h-4 w-4 text-slate-500" />
+              <BookOpen className="h-4 w-4 text-slate-400" />
             </div>
           </div>
         </div>
@@ -116,9 +116,9 @@ export default function CourseViewer({ initialCourses }: { initialCourses: Cours
       {/* Grid */}
       <div className="max-w-7xl mx-auto">
         {filteredCourses.length === 0 ? (
-          <div className="text-center py-20 bg-slate-900/30 rounded-3xl border border-slate-800">
-            <BookOpen className="mx-auto h-12 w-12 text-slate-600 mb-4" />
-            <h3 className="text-lg font-medium text-slate-300">No courses found</h3>
+          <div className="text-center py-20 bg-white rounded-3xl border border-slate-200 shadow-sm">
+            <BookOpen className="mx-auto h-12 w-12 text-slate-400 mb-4" />
+            <h3 className="text-lg font-medium text-slate-700">No courses found</h3>
             <p className="mt-1 text-slate-500">Try adjusting your search or filters to find what you're looking for.</p>
           </div>
         ) : (
@@ -130,7 +130,7 @@ export default function CourseViewer({ initialCourses }: { initialCourses: Cours
         )}
       </div>
 
-      <div className="text-center mt-12 text-slate-600 text-sm">
+      <div className="text-center mt-12 text-slate-500 font-medium text-sm">
         Showing {filteredCourses.length} course{filteredCourses.length !== 1 ? 's' : ''}
       </div>
 

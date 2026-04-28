@@ -7,14 +7,13 @@
 
 @layer base {
   :root {
-    --background: #ffffff;
-    --foreground: #020817;
+    --background: #f8fafc;
+    --foreground: #0f172a;
   }
 }
 
-
 .glass-panel {
-  @apply bg-slate-900/40 backdrop-blur-md border border-slate-800/50 shadow-xl;
+  @apply bg-white border border-slate-200 shadow-xl shadow-blue-900/5 rounded-2xl;
 }
 
 .heading {

@@ -13,20 +13,20 @@ export default function CourseCard({ course, onClick }: { course: Course, onClic
   return (
     <div 
       onClick={onClick}
-      className="glass-panel rounded-2xl p-6 cursor-pointer hover:bg-slate-800/60 transition-all duration-300 hover:scale-[1.02] flex flex-col h-full relative overflow-hidden group"
+      className="bg-white rounded-2xl p-6 cursor-pointer hover:shadow-2xl hover:shadow-blue-900/10 transition-all duration-300 hover:-translate-y-1 flex flex-col h-full relative overflow-hidden group border border-slate-100 shadow-lg shadow-slate-200/50"
     >
-      <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+      <div className="absolute top-0 right-0 p-4 opacity-[0.03] group-hover:opacity-[0.05] transition-opacity text-blue-900">
         <Users size={80} />
       </div>
 
       <div className="mb-4 relative z-10">
         <div className="flex justify-between items-start mb-3">
-          <span className="inline-block px-3 py-1 bg-cyan-500/10 text-cyan-400 text-xs font-semibold rounded-full border border-cyan-500/20">
+          <span className="inline-block px-3 py-1 bg-blue-50 text-blue-700 text-xs font-bold rounded-full border border-blue-100 shadow-sm">
             {course.entity}
           </span>
           <button 
             onClick={handleWhatsAppClick}
-            className="p-2 bg-green-500/10 hover:bg-green-500/20 text-green-500 rounded-full border border-green-500/20 transition-colors"
+            className="p-2 bg-green-50 hover:bg-green-100 text-green-600 rounded-full border border-green-200 transition-colors shadow-sm"
             title={`Message ${course.managerName} on WhatsApp`}
           >
             <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" className="css-i6dzq1">
@@ -34,21 +34,21 @@ export default function CourseCard({ course, onClick }: { course: Course, onClic
             </svg>
           </button>
         </div>
-        <h3 className="heading text-2xl font-bold text-white mb-2 line-clamp-2">{course.title}</h3>
-        <p className="text-slate-400 text-sm line-clamp-2">{course.targetAudience}</p>
+        <h3 className="heading text-2xl font-extrabold text-blue-950 mb-2 line-clamp-2">{course.title}</h3>
+        <p className="text-slate-600 text-sm line-clamp-2 font-medium">{course.targetAudience}</p>
       </div>
 
-      <div className="mt-auto space-y-3 relative z-10 pt-4 border-t border-slate-700/50">
-        <div className="flex items-center text-sm text-slate-300">
-          <Clock className="w-4 h-4 mr-2 text-cyan-400" />
+      <div className="mt-auto space-y-3 relative z-10 pt-4 border-t border-slate-100">
+        <div className="flex items-center text-sm text-slate-600 font-medium">
+          <Clock className="w-4 h-4 mr-2 text-blue-600" />
           <span>{course.duration || 'Flexible'}</span>
         </div>
-        <div className="flex items-center text-sm text-slate-300">
-          <CalendarDays className="w-4 h-4 mr-2 text-cyan-400" />
+        <div className="flex items-center text-sm text-slate-600 font-medium">
+          <CalendarDays className="w-4 h-4 mr-2 text-blue-600" />
           <span className="truncate">{course.schedule || 'Self-paced'}</span>
         </div>
-        <div className="flex items-center text-sm text-slate-300">
-          <IndianRupee className="w-4 h-4 mr-2 text-cyan-400" />
+        <div className="flex items-center text-sm text-slate-600 font-medium">
+          <IndianRupee className="w-4 h-4 mr-2 text-blue-600" />
           <span>{course.fee ? `${course.fee}` : 'Free / Unspecified'}</span>
         </div>
       </div>
